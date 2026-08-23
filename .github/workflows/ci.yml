@@ -32,6 +32,7 @@ jobs:
         with:
           enable-cache: false
       - run: uv sync --dev 
+      - run: uv run ruff check src/ tests/
       - run: uv run python -m pytest tests/ -q --evals --tb=short
       - run: uv build
 
@@ -48,6 +49,7 @@ jobs:
         with:
           enable-cache: false
       - run: uv sync --dev 
+      - run: uv run ruff check src/ tests/
       - run: uv run python -m pytest tests/ -q --evals --tb=short
       - run: uv build
 
