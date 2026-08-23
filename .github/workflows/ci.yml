@@ -30,8 +30,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: astral-sh/setup-uv@v10.0.1
         with:
-          enable-cache: true
-      - run: uv sync --dev
+          enable-cache: false
+      - run: uv sync --dev --frozen
       - run: uv run ruff check src/ tests/
       - run: uv run pytest tests/ -q --evals --tb=short
       - run: uv build
@@ -47,8 +47,8 @@ jobs:
           allow-prereleases: true
       - uses: astral-sh/setup-uv@v10.0.1
         with:
-          enable-cache: true
-      - run: uv sync --dev
+          enable-cache: false
+      - run: uv sync --dev --frozen
       - run: uv run pytest tests/ -q --evals --tb=short
       - run: uv build
 
@@ -62,8 +62,8 @@ jobs:
           python-version: "3.14"
       - uses: astral-sh/setup-uv@v10.0.1
         with:
-          enable-cache: true
-      - run: uv sync --dev
+          enable-cache: false
+      - run: uv sync --dev --frozen
       - run: uv pip install --pre pytest
       - run: uv run pytest tests/ -q --evals --tb=short
       - run: uv build
@@ -81,7 +81,7 @@ jobs:
           python-version: "3.14"
       - uses: astral-sh/setup-uv@v10.0.1
         with:
-          enable-cache: true
+          enable-cache: false
       - run: uv build
       - run: uv tool install twine
       - run: uv tool run twine upload dist/* -u __token__ -p ${{ secrets.PYPI_TOKEN }}
