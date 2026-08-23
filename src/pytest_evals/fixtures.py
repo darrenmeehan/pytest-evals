@@ -26,10 +26,17 @@ def run_id(request: pytest.FixtureRequest) -> int:
 
 @pytest.fixture(scope="session")
 def llm_judge_config() -> LLMJudgeConfig:
-    """Override this fixture to configure the LLM judge."""
+    """Override this fixture to configure the LLM judge.
+
+    The model string follows LiteLLM convention:
+      - ``gpt-4o`` (default)
+      - ``anthropic/claude-sonnet-4-20250514``
+      - ``openrouter/anthropic/claude-sonnet``
+
+    API keys are read from standard env vars via LiteLLM.
+    """
     return LLMJudgeConfig(
         model=os.environ.get("EVAL_JUDGE_MODEL", "gpt-4o"),
-        provider=os.environ.get("EVAL_JUDGE_PROVIDER", "openai"),
         temperature=float(os.environ.get("EVAL_JUDGE_TEMPERATURE", "0.0")),
     )
 

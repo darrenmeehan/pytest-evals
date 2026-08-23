@@ -223,19 +223,17 @@ class TestLLMJudgeFixture:
         result = run_pytest_on(source)
         assert result.returncode == 0, f"llm_judge type check failed:\n{result.stdout}"
 
-    def test_llm_judge_lazy_init_no_failure_without_api_key(self):
-        """Creating LLMJudge should not require an API key (lazy init)."""
+    def test_llm_judge_lazy_init_no_failure_without_litellm(self):
         source = """
         import pytest
         from pytest_evals.judge import LLMJudge, LLMJudgeConfig
 
         def test_lazy_init():
-            judge = LLMJudge(LLMJudgeConfig(api_key="test"))
-            # No exception — client not yet created
-            assert True
+            judge = LLMJudge(LLMJudgeConfig())
+            assert judge._client is None
         """
         result = run_pytest_on(source)
-        assert result.returncode == 0, f"lazy init failed:\n{result.stdout}"
+        assert result.returncode == 0, "lazy init failed"
 
 
 class TestLLMJudgeConfigOverride:
@@ -245,8 +243,8 @@ class TestLLMJudgeConfigOverride:
         source = """
         def test_config_defaults(llm_judge_config):
             assert llm_judge_config.model == "gpt-4o"
-            assert llm_judge_config.provider == "openai"
             assert llm_judge_config.temperature == 0.0
+            assert llm_judge_config.max_tokens == 4096
         """
         result = run_pytest_on(source)
         assert result.returncode == 0, f"config defaults failed:\n{result.stdout}"

@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import dataclasses
 import json
-import os
-from typing import Protocol
 
 # ── Results ───────────────────────────────────────────────────────────────
 
@@ -49,73 +47,52 @@ class GroundednessResult:
 
 @dataclasses.dataclass
 class LLMJudgeConfig:
-    """How to reach the judge model."""
+    """How to reach the judge model.
+
+    The ``model`` string follows the LiteLLM provider/model convention:
+      - ``gpt-4o``  (OpenAI, default)
+      - ``anthropic/claude-sonnet-4-20250514``
+      - ``openrouter/anthropic/claude-sonnet``
+      - ``groq/llama3-70b-8192``
+
+    LiteLLM reads API keys from standard environment variables
+    (``OPENAI_API_KEY``, ``ANTHROPIC_API_KEY``, etc.)
+    """
 
     model: str = "gpt-4o"
-    provider: str = "openai"  # "openai", "anthropic", "google"
-    api_key: str | None = None
     temperature: float = 0.0
-
-    def resolve_api_key(self) -> str:
-        if self.api_key:
-            return self.api_key
-        if self.provider == "openai":
-            return os.environ.get("OPENAI_API_KEY", "")
-        if self.provider == "anthropic":
-            return os.environ.get("ANTHROPIC_API_KEY", "")
-        return ""
+    max_tokens: int = 4096
 
 
-# ── Abstraction ―――――――――――――――――――――――――――――――――――――――――――――――――――――――
+# ── LiteLLM client ────────────────────────────────────────────────────
 
 
-class JudgeClient(Protocol):
-    """Minimal interface a judge provider must implement."""
+class _LiteLLMClient:
+    """Thin wrapper around litellm.completion for LLM-as-judge.
 
-    def generate(self, system: str, user: str) -> str: ...
+    The import is lazy — ``litellm`` is only imported on the first
+    call to ``generate()``, so creating the client won't fail if the
+    dependency is missing.
+    """
 
-
-class _OpenAIClient:
-    def __init__(self, api_key: str, model: str, temperature: float = 0.0):
-        try:
-            from openai import OpenAI
-        except ImportError:
-            raise ImportError("Install openai: pip install pytest-evals[llm]")
-        self._client = OpenAI(api_key=api_key)
+    def __init__(self, model: str, temperature: float = 0.0, max_tokens: int = 4096):
         self._model = model
         self._temperature = temperature
+        self._max_tokens = max_tokens
 
     def generate(self, system: str, user: str) -> str:
-        resp = self._client.chat.completions.create(
+        import litellm
+
+        resp = litellm.completion(
             model=self._model,
             temperature=self._temperature,
+            max_tokens=self._max_tokens,
             messages=[
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
         )
         return resp.choices[0].message.content or ""
-
-
-class _AnthropicClient:
-    def __init__(self, api_key: str, model: str, temperature: float = 0.0):
-        try:
-            import anthropic
-        except ImportError:
-            raise ImportError("Install anthropic: pip install pytest-evals[llm]")
-        self._client = anthropic.Anthropic(api_key=api_key)
-        self._model = model
-        self._temperature = temperature
-
-    def generate(self, system: str, user: str) -> str:
-        resp = self._client.messages.create(
-            model=self._model,
-            max_tokens=4096,
-            temperature=self._temperature,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-        )
-        return resp.content[0].text if resp.content else ""
 
 
 # ── Judge ─────────────────────────────────────────────────────────────────
@@ -136,24 +113,17 @@ class LLMJudge:
 
     def __init__(self, config: LLMJudgeConfig | None = None):
         self._config = config or LLMJudgeConfig()
-        self._client: JudgeClient | None = None
+        self._client: _LiteLLMClient | None = None
 
-    def _get_client(self) -> JudgeClient:
+    def _get_client(self) -> _LiteLLMClient:
         if self._client is not None:
             return self._client
         config = self._config
-        key = config.resolve_api_key()
-        if not key:
-            raise RuntimeError(
-                f"No API key found for {config.provider}. "
-                f"Set {config.provider.upper()}_API_KEY or pass api_key to LLMJudgeConfig."
-            )
-        if config.provider == "openai":
-            self._client = _OpenAIClient(key, config.model, config.temperature)
-        elif config.provider == "anthropic":
-            self._client = _AnthropicClient(key, config.model, config.temperature)
-        else:
-            raise ValueError(f"Unsupported provider: {config.provider}")
+        self._client = _LiteLLMClient(
+            model=config.model,
+            temperature=config.temperature,
+            max_tokens=config.max_tokens,
+        )
         return self._client
 
     # ── Core rubric grader ─────────────────────────────────────────────

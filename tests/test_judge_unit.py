@@ -7,8 +7,6 @@ logic for building prompts, parsing responses, and handling edge cases.
 
 from __future__ import annotations
 
-import pytest
-
 from pytest_evals.judge import (
     GroundednessResult,
     LLMJudge,
@@ -16,6 +14,7 @@ from pytest_evals.judge import (
     PairwiseResult,
     RubricResult,
     ToneResult,
+    _LiteLLMClient,
 )
 
 
@@ -41,8 +40,8 @@ class FakeJudgeClient:
 
 def make_judge(client: FakeJudgeClient) -> LLMJudge:
     """Create an LLMJudge whose _get_client returns the fake."""
-    judge = LLMJudge(LLMJudgeConfig(api_key="fake-key"))
-    judge._client = client  # inject fake
+    judge = LLMJudge(LLMJudgeConfig(model="fake-model"))
+    judge._client = client  # type: ignore[assignment]
     return judge
 
 
@@ -240,42 +239,36 @@ class TestGroundedness:
 
 
 class TestLLMJudgeConfig:
-    def test_resolve_api_key_uses_explicit(self):
-        config = LLMJudgeConfig(api_key="explicit")
-        assert config.resolve_api_key() == "explicit"
+    def test_default_model(self):
+        config = LLMJudgeConfig()
+        assert config.model == "gpt-4o"
 
-    def test_resolve_api_key_falls_back_to_env(self, monkeypatch):
-        monkeypatch.setenv("OPENAI_API_KEY", "env-key")
-        config = LLMJudgeConfig(provider="openai")
-        assert config.resolve_api_key() == "env-key"
+    def test_default_temperature(self):
+        config = LLMJudgeConfig()
+        assert config.temperature == 0.0
 
-    def test_resolve_api_key_anthropic_uses_anthropic_env(self, monkeypatch):
-        monkeypatch.setenv("ANTHROPIC_API_KEY", "anthropic-key")
-        config = LLMJudgeConfig(provider="anthropic")
-        assert config.resolve_api_key() == "anthropic-key"
+    def test_default_max_tokens(self):
+        config = LLMJudgeConfig()
+        assert config.max_tokens == 4096
 
-    def test_resolve_api_key_returns_empty_for_unknown_provider(self):
-        config = LLMJudgeConfig(provider="unknown")
-        assert config.resolve_api_key() == ""
+    def test_custom_model(self):
+        config = LLMJudgeConfig(model="openrouter/anthropic/claude-sonnet")
+        assert config.model == "openrouter/anthropic/claude-sonnet"
 
 
-# ── Judge internals ──────────────────────────────────────────────────────
+# ── Judge init ──────────────────────────────────────────────────────────
 
 
 class TestLLMJudgeInit:
-    def test_init_lazy_does_not_require_api_key(self):
-        """Creating an LLMJudge should not fail without a real key/deps."""
-        judge = LLMJudge(LLMJudgeConfig(api_key="test"))
+    def test_init_lazy_does_not_require_litellm(self):
+        """Creating an LLMJudge should not fail — client is lazy."""
+        judge = LLMJudge(LLMJudgeConfig())
         assert judge._client is None
 
-    def test_get_client_raises_without_api_key(self):
-        """Calling _get_client without a key should raise RuntimeError."""
-        judge = LLMJudge(LLMJudgeConfig(api_key=None))
-        with pytest.raises(RuntimeError):
-            judge._get_client()
-
-    def test_get_client_unsupported_provider(self):
-        """Unsupported provider should raise ValueError."""
-        judge = LLMJudge(LLMJudgeConfig(api_key="k", provider="unknown"))
-        with pytest.raises(ValueError):
-            judge._get_client()
+    def test_get_client_returns_litellm_client(self):
+        """_get_client should create a _LiteLLMClient on first call."""
+        judge = LLMJudge(LLMJudgeConfig(model="gpt-4o"))
+        client = judge._get_client()
+        assert isinstance(client, _LiteLLMClient)
+        # Second call returns the same instance
+        assert judge._get_client() is client
