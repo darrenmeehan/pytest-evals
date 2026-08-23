@@ -1,6 +1,6 @@
 # Supported versions
 
-Last reviewed: 2026-08-15
+Last reviewed: 2026-08-23
 
 ## Python
 
