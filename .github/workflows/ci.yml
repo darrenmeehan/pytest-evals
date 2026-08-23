@@ -32,7 +32,7 @@ jobs:
         with:
           enable-cache: false
       - run: uv sync --dev 
-      - run: python -m pytest tests/ -q --evals --tb=short
+      - run: python -m pytest tests/ -q --evals --tb=short -p no:cacheprovider
       - run: uv build
 
   test-prerelease-python:
@@ -48,7 +48,7 @@ jobs:
         with:
           enable-cache: false
       - run: uv sync --dev 
-      - run: python -m pytest tests/ -q --evals --tb=short
+      - run: python -m pytest tests/ -q --evals --tb=short -p no:cacheprovider
       - run: uv build
 
   test-prerelease-pytest:
@@ -64,7 +64,7 @@ jobs:
           enable-cache: false
       - run: uv sync --dev 
       - run: uv pip install --pre pytest
-      - run: python -m pytest tests/ -q --evals --tb=short
+      - run: python -m pytest tests/ -q --evals --tb=short -p no:cacheprovider
       - run: uv build
 
   publish:
