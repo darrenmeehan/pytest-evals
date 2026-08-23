@@ -33,7 +33,7 @@ jobs:
           enable-cache: false
       - run: uv sync --dev --frozen
       - run: uv run ruff check src/ tests/
-      - run: uv run pytest tests/ -q --evals --tb=short
+      - run: uv run pytest tests/ -q --evals --tb=short -p no:anyio
       - run: uv build
 
   test-prerelease-python:
@@ -49,7 +49,7 @@ jobs:
         with:
           enable-cache: false
       - run: uv sync --dev --frozen
-      - run: uv run pytest tests/ -q --evals --tb=short
+      - run: uv run pytest tests/ -q --evals --tb=short -p no:anyio
       - run: uv build
 
   test-prerelease-pytest:
@@ -65,7 +65,7 @@ jobs:
           enable-cache: false
       - run: uv sync --dev --frozen
       - run: uv pip install --pre pytest
-      - run: uv run pytest tests/ -q --evals --tb=short
+      - run: uv run pytest tests/ -q --evals --tb=short -p no:anyio
       - run: uv build
 
   publish:
