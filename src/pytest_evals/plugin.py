@@ -6,10 +6,8 @@ import pytest
 from _pytest.config import Config
 from _pytest.config.argparsing import Parser
 
-from pytest_evals.reporter import EvalReportPlugin, normalize_tier, pytest_addoption as _reporter_addoption
-
 # imported so fixtures are discovered
-from pytest_evals.fixtures import (
+from pytest_evals.fixtures import (  # noqa: F401
     agent_output,
     llm_judge,
     llm_judge_config,
@@ -17,6 +15,8 @@ from pytest_evals.fixtures import (
     run_id,
     temp_env,
 )
+from pytest_evals.reporter import EvalReportPlugin, normalize_tier
+from pytest_evals.reporter import pytest_addoption as _reporter_addoption
 
 
 def pytest_addoption(parser: Parser):

@@ -1,6 +1,7 @@
 """Terminal reporter for pytest-evals: pass@k table output."""
 
 from __future__ import annotations
+
 from collections import defaultdict
 
 import pytest

@@ -1,6 +1,7 @@
 """Eval tiers — graduated strictness for evals."""
 
 from __future__ import annotations
+
 from enum import Enum
 
 
