@@ -11,7 +11,7 @@ import sys
 import textwrap
 from pathlib import Path
 
-from conftest import run_pytest_on, count_tests_in
+from conftest import count_tests_in, run_pytest_on
 
 
 class TestEdgeCases:
@@ -79,8 +79,8 @@ class TestEdgeCases:
 
     def test_multiple_evals_with_same_name(self):
         """Evals with same function name in different files should not merge."""
-        import tempfile
         import shutil
+        import tempfile
 
         tmp_dir = Path(tempfile.mkdtemp())
         try:

@@ -6,14 +6,6 @@ and direct unit tests where the fixture logic is deterministic Python.
 
 from __future__ import annotations
 
-import os
-import subprocess
-import sys
-import textwrap
-from pathlib import Path
-
-import pytest
-
 from conftest import run_pytest_on
 
 

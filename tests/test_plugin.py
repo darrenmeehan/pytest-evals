@@ -81,9 +81,9 @@ class TestCLIOptions:
         def eval_always_passes():
             assert True
         """
+        import shutil
         import tempfile
         from pathlib import Path
-        import shutil
 
         tmp_dir = Path(tempfile.mkdtemp())
         tmp_file = tmp_dir / "eval_test.py"

@@ -10,14 +10,12 @@ from __future__ import annotations
 import pytest
 
 from pytest_evals.judge import (
-    LLMJudgeConfig,
+    GroundednessResult,
     LLMJudge,
+    LLMJudgeConfig,
+    PairwiseResult,
     RubricResult,
     ToneResult,
-    PairwiseResult,
-    GroundednessResult,
-    _OpenAIClient,
-    _AnthropicClient,
 )
 
 
@@ -30,7 +28,7 @@ class FakeJudgeClient:
         self.user = ""
 
     @classmethod
-    def one(cls, response: str) -> "FakeJudgeClient":
+    def one(cls, response: str) -> FakeJudgeClient:
         return cls([response])
 
     def generate(self, system: str, user: str) -> str:

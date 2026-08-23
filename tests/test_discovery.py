@@ -12,9 +12,7 @@ import sys
 import textwrap
 from pathlib import Path
 
-import pytest
-
-from conftest import run_pytest_on, count_tests_in
+from conftest import count_tests_in
 
 
 class TestEvalFileNaming:
@@ -58,8 +56,8 @@ class TestEvalFileNaming:
         When:  pytest collects from a directory.
         Then:  No tests are collected (python_files filters it out).
         """
-        import tempfile
         import shutil
+        import tempfile
 
         tmp_dir = Path(tempfile.mkdtemp())
         try:
@@ -153,8 +151,8 @@ class TestMixedFileAndFunction:
         """Multiple eval_*.py files in the same directory are all discovered."""
         # We can't test this easily with count_tests_in since it only writes
         # one file. So we test with a directory-based approach.
-        import tempfile
         import shutil
+        import tempfile
 
         tmp_dir = Path(tempfile.mkdtemp())
         try:

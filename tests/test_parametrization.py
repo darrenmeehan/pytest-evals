@@ -8,7 +8,7 @@ The ``--eval-tier`` CLI flag filters evals by tier.
 
 from __future__ import annotations
 
-from conftest import run_pytest_on, count_tests_in
+from conftest import count_tests_in, run_pytest_on
 
 
 class TestPassKParametrization:
